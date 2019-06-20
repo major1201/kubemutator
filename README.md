@@ -19,7 +19,7 @@ Generate certifate,
 
 ```bash
 cd examples/tls
-DEPLOYMENT=us-east-1 CLUSTER=PRODUCTION ./new-cluster-injector-cert.rb
+DEPLOYMENT=us-east-1 CLUSTER=PRODUCTION ./new-k8s-mutator-cert.rb
 ```
 
 ### Apply MutatingWebhookConfiguration
