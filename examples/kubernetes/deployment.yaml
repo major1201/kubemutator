@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "k8s-mutator"
+  namespace: "kube-system"
+  labels:
+    k8s-app: "k8s-mutator"
+spec:
+  selector:
+    matchLabels:
+      k8s-app: "k8s-mutator"
+  template:
+    metadata:
+      labels:
+        k8s-app: "k8s-mutator"
+    spec:
+      serviceAccountName: k8s-mutator
+      containers:
+      - name: "k8s-mutator"
+        imagePullPolicy: Always
+        image: "major1201/k8s-mutator:latest"
+        ports:
+        - name: https
+          containerPort: 443
+        volumeMounts:
+        - name: config
+          mountPath: /etc/k8s-mutator
+        env:
+        - name: "TLS_CERT_FILE"
+          value: "/etc/k8s-mutator/k8s-mutator.crt"
+        - name: "TLS_PRIVATE_KEY_FILE"
+          value: "/etc/k8s-mutator/k8s-mutator.key"
+      volumes:
+      - name: config
+        configMap:
+          name: k8s-mutator

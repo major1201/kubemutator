@@ -1,0 +1,30 @@
+---
+strategies:
+  - name: filebeat
+    patches:
+      # add filebeat sidecar
+      - isTemplate: true
+        data: |
+          op: add
+          path: /spec/containers/-
+          value:
+            name: filebeat
+            image: myrepo/filebeat
+            resources:
+              requests:
+                cpu: 100m
+                memory: 128Mi
+              limits:
+                cpu: 100m
+                memory: 128Mi
+            volumeMounts:
+              - name: logs
+                mountPath: /var/log/{{ .Labels.k8s-app }}
+
+rules:
+  - namespace:
+      - default
+    selector:
+      k8s-app: myapp
+    strategies:
+      - filebeat

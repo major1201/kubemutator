@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: k8s-mutator
+  namespace: kube-system
+  labels:
+    k8s-app: k8s-mutator
+spec:
+  type: ClusterIP
+  ports:
+  - name: https
+    port: 443
+    targetPort: https
+    protocol: TCP
+  selector:
+    k8s-app: k8s-mutator

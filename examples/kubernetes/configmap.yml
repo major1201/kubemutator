@@ -1,0 +1,46 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: k8s-mutator
+  namespace: kube-system
+data:
+  config.yml: |
+    ---
+    strategies:
+      - name: filebeat
+        patches:
+          # add filebeat sidecar
+          - isTemplate: true
+            data: |
+              op: add
+              path: /spec/containers/-
+              value:
+                name: filebeat
+                image: myrepo/filebeat
+                resources:
+                  requests:
+                    cpu: 100m
+                    memory: 128Mi
+                  limits:
+                    cpu: 100m
+                    memory: 128Mi
+                volumeMounts:
+                  - name: logs
+                    mountPath: /var/log/{{ .Labels.k8s-app }}
+
+    rules:
+      - namespace:
+          - default
+        selector:
+          k8s-app: myapp
+        strategies:
+          - filebeat
+  k8s-mutator.crt: |
+    -----BEGIN CERTIFICATE-----
+    YOUR_CERTIFICATE_HERE
+    -----END CERTIFICATE-----
+  k8s-mutator.key: |
+    -----BEGIN RSA PRIVATE KEY-----
+    YOUR_PRIVATE_KEY_HERE
+    -----END RSA PRIVATE KEY-----
