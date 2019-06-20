@@ -3,7 +3,7 @@
 A Kubernetes resource mutator
 
 [![GoDoc](https://godoc.org/github.com/major1201/k8s-mutator?status.svg)](https://godoc.org/github.com/major1201/k8s-mutator)
-<!--[![Go Report Card](https://goreportcard.com/badge/github.com/major1201/k8s-mutator)](https://goreportcard.com/report/github.com/major1201/k8s-mutator)-->
+[![Go Report Card](https://goreportcard.com/badge/github.com/major1201/k8s-mutator)](https://goreportcard.com/report/github.com/major1201/k8s-mutator)
 
 ## Get start
 
@@ -44,7 +44,7 @@ kubectl -n kube-system apply -f examples/kubernetes/mutating-webhook-configurati
 kubectl -n kube-system apply -f serviceaccount.yaml
 kubectl -n kube-system apply -f clusterrole.yaml
 kubectl -n kube-system apply -f clusterrolebinding.yaml
-kubectl -n kube-system apply -f configmap.yaml  # !! rewrite configmap with your config file and sidecar injector cert and key
+kubectl -n kube-system apply -f configmap.yaml  # !! rewrite configmap with your config file and mutator cert and key
 kubectl -n kube-system apply -f deployment.yaml
 kubectl -n kube-system apply -f service.yaml
 
@@ -55,6 +55,38 @@ kubectl -n kube-system apply -f service-monitor.yaml
 ## Configuration
 
 An example configuration is in examples/conf/config.yml
+
+```yaml
+strategies:
+  - name: filebeat
+    patches:
+      # add filebeat sidecar
+      - isTemplate: true
+        data: |
+          op: add
+          path: /spec/containers/-
+          value:
+            name: filebeat
+            image: myrepo/filebeat
+            resources:
+              requests:
+                cpu: 100m
+                memory: 128Mi
+              limits:
+                cpu: 100m
+                memory: 128Mi
+            volumeMounts:
+              - name: logs
+                mountPath: /var/log/{{ .Labels.k8s-app }}
+
+rules:
+  - namespace:
+      - default
+    selector:
+      k8s-app: myapp
+    strategies:
+      - filebeat
+```
 
 1. For each rule in `rules`, match `namespace` and `selector`.
 2. If match failed, match next.

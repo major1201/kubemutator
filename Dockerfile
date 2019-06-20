@@ -14,4 +14,5 @@ RUN apk --no-cache add ca-certificates
 COPY --from=0 /src/k8s-mutator /bin/k8s-mutator
 COPY ./examples/conf /etc/k8s-mutator
 ENTRYPOINT [ "k8s-mutator" ]
+VOLUME /etc/k8s-mutator
 EXPOSE 443

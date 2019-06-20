@@ -20,7 +20,7 @@ func log() *zap.Logger {
 func ConfigTLS(certFile, keyFile string) *tls.Config {
 	sCert, err := tls.LoadX509KeyPair(certFile, keyFile)
 	if err != nil {
-		zap.L().Named("http").Error("load x509 key pair error", zap.Error(err))
+		zap.L().Named("http").Fatal("load x509 key pair error", zap.Error(err))
 	}
 	return &tls.Config{
 		Certificates: []tls.Certificate{sCert},
