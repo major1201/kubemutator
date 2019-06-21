@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    k8s-app: {{ .Release.Name }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+  - name: https
+    port: 443
+    targetPort: https
+    protocol: TCP
+{{- if .Values.service.additionalPorts }}
+{{ toYaml .Values.service.additionalPorts | indent 2 }}
+{{- end}}
+  selector:
+    k8s-app: {{ .Release.Name }}

@@ -21,7 +21,7 @@ strategies:
                 memory: 128Mi
             volumeMounts:
               - name: logs
-                mountPath: /var/log/{{ .Labels.k8s-app }}
+                mountPath: "/var/log/{{ .Pod.Labels.k8s-app }}"
 
 rules:
   - namespace:

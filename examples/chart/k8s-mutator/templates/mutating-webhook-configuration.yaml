@@ -1,0 +1,24 @@
+apiVersion:  admissionregistration.k8s.io/v1beta1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    app: {{ .Release.Name }}
+webhooks:
+  - name: {{ .Values.webhook.name }}
+    failurePolicy: {{ .Values.webhook.failurePolicy }}
+{{- if .Values.webhook.namespaceSelector }}
+    namespaceSelector:
+{{ toYaml .Values.webhook.namespaceSelector | indent 6 }}
+{{- end }}
+    rules:
+      - operations: [ "CREATE" ]
+        apiGroups: [""]
+        apiVersions: ["v1"]
+        resources: ["pods"]
+    clientConfig:
+      service:
+        name: {{ .Release.Name }}
+        namespace: {{ .Release.Namespace }}
+        path: "/mutate"
+      caBundle: {{ .Values.certificates.caBundle }}

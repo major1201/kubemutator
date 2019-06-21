@@ -52,6 +52,23 @@ kubectl -n kube-system apply -f service.yaml
 kubectl -n kube-system apply -f service-monitor.yaml
 ```
 
+### Or you can deploy k8s-mutator with helm
+
+```bash
+cd examples/chart
+
+# generate you custom values
+helm inspect values k8s-mutator > custom.yaml
+
+# make some changes to custom.yaml
+
+# show what would happen next
+helm template --name k8s-mutator --namespace kube-system -f custom.yaml k8s-mutator
+
+# install to your Kubernetes cluster
+helm install --name k8s-mutator --namespace kube-system -f custom.yaml k8s-mutator
+```
+
 ## Configuration
 
 An example configuration is in examples/conf/config.yml

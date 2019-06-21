@@ -1,0 +1,12 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}
+data:
+  config.yml: |
+{{ toYaml .Values.config | indent 4 }}
+  k8s-mutator.crt: |
+{{ .Values.certificates.cert | indent 4 }}
+  k8s-mutator.key: |
+{{ .Values.certificates.key | indent 4 }}
