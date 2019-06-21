@@ -57,6 +57,8 @@ kubectl -n kube-system apply -f service-monitor.yaml
 An example configuration is in examples/conf/config.yml
 
 ```yaml
+annotationKey: k8s-mutator.example.com/requests
+
 strategies:
   - name: filebeat
     patches:
@@ -90,8 +92,9 @@ rules:
 
 1. For each rule in `rules`, match `namespace` and `selector`.
 2. If match failed, match next.
-3. If match succeeded, append the strageties to the strategy list.
-4. Merge all the strategy patches and response the JSONPatch object to the Kubernetes server.
+3. If match succeeded, append the strategies to the strategy list.
+4. Read the pod annotation prefixed by `annotationKey`, append the strategies joined by comma to the strategy list.
+5. Merge all the strategy patches and response the JSONPatch object to the Kubernetes server.
 
 ## License
 

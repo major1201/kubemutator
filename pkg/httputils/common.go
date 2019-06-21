@@ -10,6 +10,8 @@ import (
 const (
 	// CtxRequestID is the request id context key const set to the context
 	CtxRequestID = iota
+	// CtxLogger is the logger object set to the context
+	CtxLogger
 )
 
 var _log *zap.Logger

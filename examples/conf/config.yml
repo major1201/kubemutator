@@ -1,4 +1,6 @@
 ---
+annotationKey: k8s-mutator.example.com/requests
+
 strategies:
   - name: filebeat
     patches:

@@ -10,9 +10,14 @@ import (
 	"k8s.io/api/admission/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"net/http"
 	"strings"
 	"text/template"
 )
+
+type templateData struct {
+	Pod *corev1.Pod
+}
 
 // ContainsString indicates if the target string in the list of string
 func ContainsString(obj string, v ...string) bool {
@@ -24,11 +29,11 @@ func ContainsString(obj string, v ...string) bool {
 	return false
 }
 
-func mutatePods(ar v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
-	zap.L().Named("mutator").Debug("mutating pods")
+func mutatePods(r *http.Request, ar v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
+	getLogger(r).Debug("processing admission review")
 	podResource := metav1.GroupVersionResource{Group: "", Version: "v1", Resource: "pods"}
 	if ar.Request.Resource != podResource {
-		zap.L().Named("mutator").Error("expect resource to be pod", zap.Any("podResource", podResource))
+		getLogger(r).Error("expect resource to be pod", zap.Any("podResource", podResource))
 		return nil
 	}
 
@@ -36,33 +41,32 @@ func mutatePods(ar v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
 	pod := corev1.Pod{}
 	deserializer := codecs.UniversalDeserializer()
 	if _, _, err := deserializer.Decode(raw, nil, &pod); err != nil {
-		zap.L().Named("mutator").Error("deserializer decoding error", zap.Error(err))
+		getLogger(r).Error("deserializer decoding error", zap.Error(err))
 		return toAdmissionResponse(err)
 	}
-
-	// debug
-	zap.L().Named("mutator").Debug("Pod object", zap.Any("pod", pod))
 
 	reviewResponse := v1beta1.AdmissionResponse{}
 	reviewResponse.Allowed = true
 
-	jsonPatch, err := patchPod(&ar, &pod)
+	jsonPatch, auditAnnotations, err := patchPod(&ar, &pod)
 	if err != nil {
-		zap.L().Named("mutator").Error("patch error", zap.Error(err))
+		getLogger(r).Error("patch error", zap.Error(err))
 	} else {
 		if jsonPatch != nil {
 			pt := v1beta1.PatchTypeJSONPatch
 			reviewResponse.PatchType = &pt
 			reviewResponse.Patch = jsonPatch
+			reviewResponse.AuditAnnotations = auditAnnotations
 
-			zap.L().Named("mutator").Info("mutating pod", zap.String("name", pod.Name), zap.ByteString("jsonPatch", jsonPatch))
+			getLogger(r).Info("mutating pod", zap.String("name", pod.GenerateName))
 		}
 	}
 	return &reviewResponse
 }
 
-func patchPod(ar *v1beta1.AdmissionReview, pod *corev1.Pod) (jsonPatch []byte, err error) {
+func patchPod(ar *v1beta1.AdmissionReview, pod *corev1.Pod) (jsonPatch []byte, auditAnnotations map[string]string, err error) {
 	var strategies []string
+	// check rules
 	for _, rule := range config.CurrentConfig.Rules {
 		if matchRule(ar, pod, rule) {
 			// group rule strategies
@@ -73,7 +77,22 @@ func patchPod(ar *v1beta1.AdmissionReview, pod *corev1.Pod) (jsonPatch []byte, e
 			}
 		}
 	}
+	// check annotations
+	if requestAnnotation, ok := pod.Annotations[config.CurrentConfig.AnnotationKey]; ok {
+		requestStrategies := strings.Split(requestAnnotation, ",")
+		for _, stg := range requestStrategies {
+			if !ContainsString(stg, strategies...) {
+				strategies = append(strategies, stg)
+			}
+		}
+	}
 
+	// prepare template data
+	td := templateData{
+		Pod: pod,
+	}
+
+	// generate json patch
 	var patches []string
 	for _, stg := range strategies {
 		exist := false
@@ -83,7 +102,7 @@ func patchPod(ar *v1beta1.AdmissionReview, pod *corev1.Pod) (jsonPatch []byte, e
 				for _, patch := range configStrategy.Patches {
 					jp, err := yaml.YAMLToJSON([]byte(patch.Data))
 					if err != nil {
-						return nil, errors.New(fmt.Sprintf("yaml to json error, strategy: %s", stg))
+						return nil, nil, errors.New(fmt.Sprintf("yaml to json error, strategy: %s", stg))
 					}
 
 					patchString := string(jp)
@@ -91,12 +110,12 @@ func patchPod(ar *v1beta1.AdmissionReview, pod *corev1.Pod) (jsonPatch []byte, e
 						// template patch
 						tmpl, err := template.New(pod.GenerateName).Parse(patchString)
 						if err != nil {
-							return nil, errors.WithMessage(errors.WithStack(err), "parse template error")
+							return nil, nil, errors.WithMessage(errors.WithStack(err), "parse template error")
 						}
 						var bbf bytes.Buffer
-						err = tmpl.Execute(&bbf, pod)
+						err = tmpl.Execute(&bbf, td)
 						if err != nil {
-							return nil, errors.WithMessage(errors.WithStack(err), "execute template error")
+							return nil, nil, errors.WithMessage(errors.WithStack(err), "execute template error")
 						}
 
 						patches = append(patches, bbf.String())
@@ -109,14 +128,14 @@ func patchPod(ar *v1beta1.AdmissionReview, pod *corev1.Pod) (jsonPatch []byte, e
 		}
 
 		if !exist {
-			return nil, errors.New(fmt.Sprintf("strategy not exist: %s", stg))
+			return nil, nil, errors.New(fmt.Sprintf("strategy not exist: %s", stg))
 		}
 	}
 
 	if len(patches) == 0 {
-		return nil, nil
+		return nil, nil, nil
 	}
-	return []byte("[" + strings.Join(patches, ",") + "]"), nil
+	return []byte("[" + strings.Join(patches, ",") + "]"), map[string]string{"strategies": strings.Join(strategies, ",")}, nil
 }
 
 func matchRule(ar *v1beta1.AdmissionReview, pod *corev1.Pod, rule *config.Rule) bool {

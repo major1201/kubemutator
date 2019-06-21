@@ -7,7 +7,6 @@ import (
 	"github.com/major1201/k8s-mutator/internal/view/reload"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"net/http"
-	"os"
 )
 
 // SetRouter sets the main http route
@@ -16,9 +15,10 @@ func SetRouter(router *mux.Router) {
 	router.Handle("/metrics", promhttp.Handler())
 
 	// mutate
+	mutateRoute := router.Path("/mutate").Subrouter()
+	mutateRoute.Use(RequestIDMiddleware, LogMiddleware)
 	mutateHandler := handlers.ContentTypeHandler(http.HandlerFunc(mutate.ServeMutate), "application/json")
-	mutateHandler = handlers.LoggingHandler(os.Stdout, mutateHandler)
-	router.Handle("/mutate", mutateHandler)
+	mutateRoute.Handle("", mutateHandler)
 
 	// reload config
 	router.HandleFunc("/reload", reload.ServeReload)

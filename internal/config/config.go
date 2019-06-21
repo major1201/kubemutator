@@ -2,6 +2,7 @@ package config
 
 import (
 	"github.com/ghodss/yaml"
+	"github.com/major1201/goutils"
 	"go.uber.org/zap"
 	"io/ioutil"
 	"os"
@@ -37,9 +38,18 @@ func LoadConfig() error {
 	if err = yaml.Unmarshal(yamlByte, config); err != nil {
 		return err
 	}
+
+	setDefaultValues(config)
+
 	CurrentConfig = config
 
 	zap.L().Named("config").Info("config file loaded", zap.String("path", Path), zap.Any("currentConfig", CurrentConfig))
 
 	return nil
+}
+
+func setDefaultValues(config *MutatorConfig) {
+	if goutils.IsBlank(config.AnnotationKey) {
+		config.AnnotationKey = "k8s-mutator.example.com/requests"
+	}
 }

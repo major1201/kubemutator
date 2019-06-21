@@ -2,8 +2,9 @@ package config
 
 // MutatorConfig indicates the k8s-mutator main config file structure
 type MutatorConfig struct {
-	Strategies []*Strategy `json:"strategies" yaml:"strategies"`
-	Rules      []*Rule     `json:"rules" yaml:"rules"`
+	AnnotationKey string      `json:"annotationKey" yaml:"annotationKey"`
+	Strategies    []*Strategy `json:"strategies" yaml:"strategies"`
+	Rules         []*Rule     `json:"rules" yaml:"rules"`
 }
 
 // Strategy indicates each strategy
