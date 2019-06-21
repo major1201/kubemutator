@@ -1,7 +1,7 @@
 ---
 image:
   name: "major1201/k8s-mutator:latest"
-  pullPolicy: always
+  pullPolicy: Always
 
 webhook:
   name: k8s-mutator.example.com

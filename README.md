@@ -107,6 +107,8 @@ rules:
       - filebeat
 ```
 
+*patch data see <https://tools.ietf.org/html/rfc6902>*
+
 1. For each rule in `rules`, match `namespace` and `selector`.
 2. If match failed, match next.
 3. If match succeeded, append the strategies to the strategy list.

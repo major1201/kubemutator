@@ -24,11 +24,6 @@ spec:
         volumeMounts:
         - name: config
           mountPath: /etc/k8s-mutator
-        env:
-        - name: "TLS_CERT_FILE"
-          value: "/etc/k8s-mutator/k8s-mutator.crt"
-        - name: "TLS_PRIVATE_KEY_FILE"
-          value: "/etc/k8s-mutator/k8s-mutator.key"
       volumes:
       - name: config
         configMap:
