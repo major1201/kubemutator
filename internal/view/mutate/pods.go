@@ -101,15 +101,10 @@ func patchPod(ar *v1beta1.AdmissionReview, pod *corev1.Pod) (jsonPatch []byte, a
 			if stg == configStrategy.Name {
 				exist = true
 				for _, patch := range configStrategy.Patches {
-					jp, err := yaml.YAMLToJSON([]byte(patch.Data))
-					if err != nil {
-						return nil, nil, errors.New(fmt.Sprintf("yaml to json error, strategy: %s", stg))
-					}
-
-					patchString := string(jp)
+					var yamlPatch string
 					if patch.IsTemplate {
 						// template patch
-						tmpl, err := template.New(pod.GenerateName).Parse(patchString)
+						tmpl, err := template.New(pod.GenerateName).Parse(patch.Data)
 						if err != nil {
 							return nil, nil, errors.WithMessage(errors.WithStack(err), "parse template error")
 						}
@@ -119,13 +114,21 @@ func patchPod(ar *v1beta1.AdmissionReview, pod *corev1.Pod) (jsonPatch []byte, a
 							return nil, nil, errors.WithMessage(errors.WithStack(err), "execute template error")
 						}
 
-						patchString = bbf.String()
-						if goutils.IsNotBlank(patchString) {
-							patches = append(patches, patchString)
-						}
+						yamlPatch = bbf.String()
 					} else {
-						patches = append(patches, patchString)
+						yamlPatch = patch.Data
 					}
+
+					if goutils.IsBlank(yamlPatch) {
+						continue
+					}
+
+					jp, err := yaml.YAMLToJSON([]byte(patch.Data))
+					if err != nil {
+						return nil, nil, errors.New(fmt.Sprintf("yaml to json error, strategy: %s", stg))
+					}
+
+					patches = append(patches, string(jp))
 				}
 				break
 			}
