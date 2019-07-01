@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/ghodss/yaml"
+	"github.com/major1201/goutils"
 	"github.com/major1201/k8s-mutator/internal/config"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -118,7 +119,10 @@ func patchPod(ar *v1beta1.AdmissionReview, pod *corev1.Pod) (jsonPatch []byte, a
 							return nil, nil, errors.WithMessage(errors.WithStack(err), "execute template error")
 						}
 
-						patches = append(patches, bbf.String())
+						patchString = bbf.String()
+						if goutils.IsNotBlank(patchString) {
+							patches = append(patches, patchString)
+						}
 					} else {
 						patches = append(patches, patchString)
 					}
