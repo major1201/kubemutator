@@ -10,7 +10,7 @@ import (
 )
 
 // AppVer means the project's version
-const AppVer = "0.1.0-r1"
+const AppVer = "0.1.0-r2"
 
 func initLog(stdout, stderr string, level zapcore.Level) {
 	zap.NewProductionConfig()

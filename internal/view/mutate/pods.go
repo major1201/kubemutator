@@ -123,7 +123,7 @@ func patchPod(ar *v1beta1.AdmissionReview, pod *corev1.Pod) (jsonPatch []byte, a
 						continue
 					}
 
-					jp, err := yaml.YAMLToJSON([]byte(patch.Data))
+					jp, err := yaml.YAMLToJSON([]byte(yamlPatch))
 					if err != nil {
 						return nil, nil, errors.New(fmt.Sprintf("yaml to json error, strategy: %s", stg))
 					}
