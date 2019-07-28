@@ -9,8 +9,11 @@ import (
 	"os"
 )
 
-// AppVer means the project's version
-const AppVer = "0.1.0-r2"
+// Name inspects the project name
+var Name = "k8s-mutator"
+
+// Version means the project's version
+var Version = "custom"
 
 func initLog(stdout, stderr string, level zapcore.Level) {
 	zap.NewProductionConfig()
@@ -74,7 +77,7 @@ func runApp(c *cli.Context) {
 func main() {
 	initLog("stdout", "stderr", zapcore.DebugLevel)
 
-	zap.L().Named("system").Info("starting k8s-mutator", zap.String("version", AppVer))
+	zap.L().Named("system").Info("starting k8s-mutator", zap.String("version", Version))
 
 	// parse flags
 	if err := getApp().Run(os.Args); err != nil {
