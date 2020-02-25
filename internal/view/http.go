@@ -3,6 +3,7 @@ package view
 import (
 	"crypto/tls"
 	"github.com/gorilla/mux"
+	plog "github.com/major1201/k8s-mutator/pkg/log"
 	"go.uber.org/zap"
 	"net/http"
 )
@@ -41,5 +42,5 @@ func ServeHTTP(listenAddress string, tlsConfig *tls.Config) {
 		TLSConfig: tlsConfig,
 	}
 	log().Info("starting http server", zap.String("listen", listenAddress))
-	log().Fatal("http server ends", zap.Error(server.ListenAndServeTLS("", "")))
+	log().Fatal("http server ends", plog.Error(server.ListenAndServeTLS("", "")))
 }

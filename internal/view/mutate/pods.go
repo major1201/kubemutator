@@ -6,6 +6,7 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/major1201/goutils"
 	"github.com/major1201/k8s-mutator/internal/config"
+	"github.com/major1201/k8s-mutator/pkg/log"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"k8s.io/api/admission/v1beta1"
@@ -42,7 +43,8 @@ func mutatePods(r *http.Request, ar v1beta1.AdmissionReview) *v1beta1.AdmissionR
 	pod := corev1.Pod{}
 	deserializer := codecs.UniversalDeserializer()
 	if _, _, err := deserializer.Decode(raw, nil, &pod); err != nil {
-		getLogger(r).Error("deserializer decoding error", zap.Error(err))
+		err = errors.Wrap(err, "deserializer decode error")
+		getLogger(r).Error("deserializer decoding error", log.Error(err))
 		return toAdmissionResponse(err)
 	}
 
@@ -152,20 +154,7 @@ func matchRule(ar *v1beta1.AdmissionReview, pod *corev1.Pod, rule *config.Rule) 
 			return false
 		}
 	}
-
-	// check labels
-	podLabels := pod.Labels
-	for k, v := range rule.Selector {
-		val, ok := podLabels[k]
-		if !ok {
-			return false
-		}
-		if v != val {
-			return false
-		}
-	}
-
-	return true
+	return rule.Matches(pod.Labels)
 }
 
 func mapKeys(m map[string]bool) (arr []string) {

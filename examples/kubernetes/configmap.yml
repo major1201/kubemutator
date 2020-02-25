@@ -35,7 +35,8 @@ data:
       - namespace:
           - default
         selector:
-          k8s-app: myapp
+          matchLabels:
+            k8s-app: myapp
         strategies:
           - filebeat
   k8s-mutator.crt: |

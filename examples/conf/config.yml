@@ -27,6 +27,7 @@ rules:
   - namespace:
       - default
     selector:
-      k8s-app: myapp
+      matchLabels:
+        k8s-app: myapp
     strategies:
       - filebeat

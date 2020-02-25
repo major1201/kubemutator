@@ -7,18 +7,15 @@ import (
 	"go.uber.org/zap"
 )
 
-func getApp() *cli.App {
+func getCLIApp() *cli.App {
 	app := cli.NewApp()
 	app.Name = Name
 	app.HelpName = app.Name
 	app.Usage = app.Name
 	app.Version = Version
 	app.Flags = []cli.Flag{
-		cli.BoolFlag{
-			Name:  "help, h",
-			Usage: "show help",
-		},
 		cli.VersionFlag,
+		cli.HelpFlag,
 		cli.StringFlag{
 			Name:  "config, c",
 			Usage: "config file path, default(/etc/k8s-mutator/config.yml)",
@@ -41,17 +38,12 @@ func getApp() *cli.App {
 		},
 	}
 	app.Action = func(c *cli.Context) error {
-		if c.Bool("help") {
-			cli.ShowAppHelpAndExit(c, 0)
-		}
 		// check additional config
 		if err := checkConfig(c); err != nil {
 			zap.L().Named("Config").Fatal("config error", zap.Error(err))
 		}
-		runApp(c)
-		return nil
+		return runMain(c)
 	}
-	app.HideHelp = true
 	return app
 }
 

@@ -102,12 +102,13 @@ rules:
   - namespace:
       - default
     selector:
-      k8s-app: myapp
+      matchLabels:
+        k8s-app: myapp
     strategies:
       - filebeat
 ```
 
-*patch data see <https://tools.ietf.org/html/rfc6902>*
+*patch data see: <https://tools.ietf.org/html/rfc6902>*
 
 1. For each rule in `rules`, match `namespace` and `selector`.
 2. If match failed, match next.

@@ -1,5 +1,10 @@
 package config
 
+import (
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
+)
+
 // MutatorConfig indicates the k8s-mutator main config file structure
 type MutatorConfig struct {
 	AnnotationKey string      `json:"annotationKey" yaml:"annotationKey"`
@@ -21,7 +26,17 @@ type Patch struct {
 
 // Rule indicates each select rule
 type Rule struct {
-	Namespace  []string          `json:"namespace" yaml:"namespace"`
-	Selector   map[string]string `json:"selector" yaml:"selector"`
-	Strategies []string          `json:"strategies" yaml:"strategies"`
+	Namespace  []string              `json:"namespace" yaml:"namespace"`
+	Selector   *metav1.LabelSelector `json:"selector" yaml:"selector"`
+	Strategies []string              `json:"strategies" yaml:"strategies"`
+
+	selector labels.Selector
+}
+
+// Matches returns if the selector matches the lables
+func (r *Rule) Matches(l map[string]string) bool {
+	if r.selector == nil {
+		return false
+	}
+	return r.selector.Matches(labels.Set(l))
 }

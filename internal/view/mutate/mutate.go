@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/major1201/k8s-mutator/pkg/httputils"
+	"github.com/major1201/k8s-mutator/pkg/log"
+	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"io/ioutil"
 	"net/http"
@@ -62,7 +64,8 @@ func serve(w http.ResponseWriter, r *http.Request, admit admitFunc) {
 
 	deserializer := codecs.UniversalDeserializer()
 	if _, _, err := deserializer.Decode(body, nil, &requestedAdmissionReview); err != nil {
-		getLogger(r).Error("deserializer decoding error", zap.Error(err))
+		err = errors.Wrap(err, "deserializer decode error")
+		getLogger(r).Error("deserializer decoding error", log.Error(err))
 		responseAdmissionReview.Response = toAdmissionResponse(err)
 	} else {
 		// pass to admitFunc
@@ -83,9 +86,11 @@ func serve(w http.ResponseWriter, r *http.Request, admit admitFunc) {
 
 	respBytes, err := json.Marshal(responseAdmissionReview)
 	if err != nil {
-		getLogger(r).Error("json marshal error", zap.Error(err))
+		err = errors.Wrap(err, "json marshal error")
+		getLogger(r).Error("json marshal error", log.Error(err))
 	}
 	if _, err := w.Write(respBytes); err != nil {
+		err = errors.Wrap(err, "write response error")
 		getLogger(r).Error("write response error", zap.Error(err))
 	}
 }

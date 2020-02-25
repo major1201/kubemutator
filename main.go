@@ -3,9 +3,9 @@ package main
 import (
 	"github.com/major1201/k8s-mutator/internal/config"
 	"github.com/major1201/k8s-mutator/internal/view"
+	"github.com/major1201/k8s-mutator/pkg/log"
 	"github.com/urfave/cli"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 	"os"
 )
 
@@ -15,24 +15,16 @@ var Name = "k8s-mutator"
 // Version means the project's version
 var Version = "custom"
 
-func initLog(stdout, stderr string, level zapcore.Level) {
-	zap.NewProductionConfig()
-	logger, _ := zap.Config{
-		Encoding:         "console",
-		EncoderConfig:    zap.NewDevelopmentEncoderConfig(),
-		Level:            zap.NewAtomicLevelAt(level),
-		OutputPaths:      []string{stdout},
-		ErrorOutputPaths: []string{stderr},
-	}.Build()
-	defer logger.Sync()
-	zap.ReplaceGlobals(logger)
+func init() {
+	// start program
+	zap.L().Info("starting up", zap.String("name", Name), zap.String("version", Version))
 }
 
-func runApp(c *cli.Context) {
+func runMain(c *cli.Context) error {
 	// load config file
 	config.SetPath(c.String("config"))
 	if err := config.LoadConfig(); err != nil {
-		zap.L().Named("config").Fatal("error loading config file", zap.Error(err))
+		zap.L().Named("config").Fatal("error loading config file", log.Error(err))
 	}
 
 	// configmap watcher
@@ -72,15 +64,13 @@ func runApp(c *cli.Context) {
 	// start serving
 	view.ServeHTTP(c.String("listen"), view.ConfigTLS(c.String("tls-cert-file"), c.String("tls-private-key-file")))
 	//cancelContexts()
+
+	return nil
 }
 
 func main() {
-	initLog("stdout", "stderr", zapcore.DebugLevel)
-
-	zap.L().Named("system").Info("starting k8s-mutator", zap.String("version", Version))
-
 	// parse flags
-	if err := getApp().Run(os.Args); err != nil {
+	if err := getCLIApp().Run(os.Args); err != nil {
 		zap.L().Fatal("flag unexpected error", zap.Error(err))
 	}
 }
