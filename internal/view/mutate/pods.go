@@ -66,14 +66,14 @@ func mutatePods(r *http.Request, ar v1beta1.AdmissionReview) *v1beta1.AdmissionR
 }
 
 func patchPod(ar *v1beta1.AdmissionReview, pod *corev1.Pod) (jsonPatch []byte, auditAnnotations map[string]string, err error) {
-	var strategies []string
+	strategies := make(map[string]bool)
 	// check rules
 	for _, rule := range config.CurrentConfig.Rules {
 		if matchRule(ar, pod, rule) {
 			// group rule strategies
 			for _, stg := range rule.Strategies {
-				if !ContainsString(stg, strategies...) {
-					strategies = append(strategies, stg)
+				if !strategies[stg] {
+					strategies[stg] = true
 				}
 			}
 		}
@@ -82,8 +82,8 @@ func patchPod(ar *v1beta1.AdmissionReview, pod *corev1.Pod) (jsonPatch []byte, a
 	if requestAnnotation, ok := pod.Annotations[config.CurrentConfig.AnnotationKey]; ok {
 		requestStrategies := strings.Split(requestAnnotation, ",")
 		for _, stg := range requestStrategies {
-			if !ContainsString(stg, strategies...) {
-				strategies = append(strategies, stg)
+			if !strategies[stg] {
+				strategies[stg] = true
 			}
 		}
 	}
@@ -95,7 +95,7 @@ func patchPod(ar *v1beta1.AdmissionReview, pod *corev1.Pod) (jsonPatch []byte, a
 
 	// generate json patch
 	var patches []string
-	for _, stg := range strategies {
+	for stg := range strategies {
 		exist := false
 		for _, configStrategy := range config.CurrentConfig.Strategies {
 			if stg == configStrategy.Name {
@@ -142,7 +142,7 @@ func patchPod(ar *v1beta1.AdmissionReview, pod *corev1.Pod) (jsonPatch []byte, a
 	if len(patches) == 0 {
 		return nil, nil, nil
 	}
-	return []byte("[" + strings.Join(patches, ",") + "]"), map[string]string{"strategies": strings.Join(strategies, ",")}, nil
+	return []byte("[" + strings.Join(patches, ",") + "]"), map[string]string{"strategies": strings.Join(mapKeys(strategies), ",")}, nil
 }
 
 func matchRule(ar *v1beta1.AdmissionReview, pod *corev1.Pod, rule *config.Rule) bool {
@@ -166,4 +166,11 @@ func matchRule(ar *v1beta1.AdmissionReview, pod *corev1.Pod, rule *config.Rule) 
 	}
 
 	return true
+}
+
+func mapKeys(m map[string]bool) (arr []string) {
+	for key := range m {
+		arr = append(arr, key)
+	}
+	return
 }
