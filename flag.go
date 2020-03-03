@@ -18,8 +18,8 @@ func getCLIApp() *cli.App {
 		cli.HelpFlag,
 		cli.StringFlag{
 			Name:  "config, c",
-			Usage: "config file path, default(/etc/k8s-mutator/config.yml)",
-			Value: "/etc/k8s-mutator/config.yml",
+			Usage: "config file path, default(/etc/kubemutator/config.yml)",
+			Value: "/etc/kubemutator/config.yml",
 		},
 		cli.StringFlag{
 			Name:   "tls-cert-file",

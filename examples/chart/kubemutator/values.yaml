@@ -1,17 +1,17 @@
 ---
 image:
-  name: "major1201/k8s-mutator:latest"
+  name: "major1201/kubemutator:latest"
   pullPolicy: Always
 
 webhook:
-  name: k8s-mutator.example.com
+  name: kubemutator.example.com
   failurePolicy: Ignore
 #  namespaceSelector:
 #    matchLabels:
 #      name: default
 
 config:
-  annotationKey: k8s-mutator.example.com/requests
+  annotationKey: kubemutator.example.com/requests
   strategies:
     - name: filebeat
       patches:

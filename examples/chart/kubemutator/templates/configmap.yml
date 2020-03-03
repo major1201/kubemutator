@@ -6,7 +6,7 @@ metadata:
 data:
   config.yml: |
 {{ toYaml .Values.config | indent 4 }}
-  k8s-mutator.crt: |
+  kubemutator.crt: |
 {{ .Values.certificates.cert | indent 4 }}
-  k8s-mutator.key: |
+  kubemutator.key: |
 {{ .Values.certificates.key | indent 4 }}

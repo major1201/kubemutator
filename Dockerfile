@@ -8,11 +8,11 @@ COPY . .
 RUN go build
 
 FROM alpine:3.9.2
-ENV TLS_CERT_FILE=/etc/k8s-mutator/k8s-mutator.crt \
-    TLS_PRIVATE_KEY_FILE=/etc/k8s-mutator/k8s-mutator.key
+ENV TLS_CERT_FILE=/etc/kubemutator/kubemutator.crt \
+    TLS_PRIVATE_KEY_FILE=/etc/kubemutator/kubemutator.key
 RUN apk --no-cache add ca-certificates
-COPY --from=0 /src/k8s-mutator /bin/k8s-mutator
-COPY ./examples/conf /etc/k8s-mutator
-ENTRYPOINT [ "k8s-mutator" ]
-VOLUME /etc/k8s-mutator
+COPY --from=0 /src/kubemutator /bin/kubemutator
+COPY ./examples/conf /etc/kubemutator
+ENTRYPOINT [ "kubemutator" ]
+VOLUME /etc/kubemutator
 EXPOSE 443

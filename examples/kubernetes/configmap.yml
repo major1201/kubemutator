@@ -2,12 +2,12 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: k8s-mutator
+  name: kubemutator
   namespace: kube-system
 data:
   config.yml: |
     ---
-    annotationKey: k8s-mutator.example.com/requests
+    annotationKey: kubemutator.example.com/requests
 
     strategies:
       - name: filebeat
@@ -39,11 +39,11 @@ data:
             k8s-app: myapp
         strategies:
           - filebeat
-  k8s-mutator.crt: |
+  kubemutator.crt: |
     -----BEGIN CERTIFICATE-----
     YOUR_CERTIFICATE_HERE
     -----END CERTIFICATE-----
-  k8s-mutator.key: |
+  kubemutator.key: |
     -----BEGIN RSA PRIVATE KEY-----
     YOUR_PRIVATE_KEY_HERE
     -----END RSA PRIVATE KEY-----

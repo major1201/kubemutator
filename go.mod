@@ -1,4 +1,4 @@
-module github.com/major1201/k8s-mutator
+module github.com/major1201/kubemutator
 
 go 1.12
 

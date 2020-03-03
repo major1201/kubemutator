@@ -1,9 +1,9 @@
-# k8s-mutator
+# kubemutator
 
 A Kubernetes resource mutator
 
-[![GoDoc](https://godoc.org/github.com/major1201/k8s-mutator?status.svg)](https://godoc.org/github.com/major1201/k8s-mutator)
-[![Go Report Card](https://goreportcard.com/badge/github.com/major1201/k8s-mutator)](https://goreportcard.com/report/github.com/major1201/k8s-mutator)
+[![GoDoc](https://godoc.org/github.com/major1201/kubemutator?status.svg)](https://godoc.org/github.com/major1201/kubemutator)
+[![Go Report Card](https://goreportcard.com/badge/github.com/major1201/kubemutator)](https://goreportcard.com/report/github.com/major1201/kubemutator)
 
 ## Get start
 
@@ -19,7 +19,7 @@ Generate certifate,
 
 ```bash
 cd examples/tls
-DEPLOYMENT=us-east-1 CLUSTER=PRODUCTION ./new-k8s-mutator-cert.rb
+DEPLOYMENT=us-east-1 CLUSTER=PRODUCTION ./new-kubemutator-cert.rb
 ```
 
 ### Apply MutatingWebhookConfiguration
@@ -52,21 +52,21 @@ kubectl -n kube-system apply -f service.yaml
 kubectl -n kube-system apply -f service-monitor.yaml
 ```
 
-### Or you can deploy k8s-mutator with helm
+### Or you can deploy kubemutator with helm
 
 ```bash
 cd examples/chart
 
 # generate you custom values
-helm inspect values k8s-mutator > custom.yaml
+helm inspect values kubemutator > custom.yaml
 
 # make some changes to custom.yaml
 
 # show what would happen next
-helm template --name k8s-mutator --namespace kube-system -f custom.yaml k8s-mutator
+helm template --name kubemutator --namespace kube-system -f custom.yaml kubemutator
 
 # install to your Kubernetes cluster
-helm install --name k8s-mutator --namespace kube-system -f custom.yaml k8s-mutator
+helm install --name kubemutator --namespace kube-system -f custom.yaml kubemutator
 ```
 
 ## Configuration
@@ -74,7 +74,7 @@ helm install --name k8s-mutator --namespace kube-system -f custom.yaml k8s-mutat
 An example configuration is in examples/conf/config.yml
 
 ```yaml
-annotationKey: k8s-mutator.example.com/requests
+annotationKey: kubemutator.example.com/requests
 
 strategies:
   - name: filebeat

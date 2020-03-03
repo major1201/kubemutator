@@ -3,8 +3,8 @@ package mutate
 import (
 	"context"
 	"encoding/json"
-	"github.com/major1201/k8s-mutator/pkg/httputils"
-	"github.com/major1201/k8s-mutator/pkg/log"
+	"github.com/major1201/kubemutator/pkg/httputils"
+	"github.com/major1201/kubemutator/pkg/log"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"io/ioutil"

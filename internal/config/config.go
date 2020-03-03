@@ -55,7 +55,7 @@ func LoadConfig() error {
 
 func setDefaultValues(config *MutatorConfig) {
 	if goutils.IsBlank(config.AnnotationKey) {
-		config.AnnotationKey = "k8s-mutator.example.com/requests"
+		config.AnnotationKey = "kubemutator.example.com/requests"
 	}
 }
 

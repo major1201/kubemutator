@@ -1,9 +1,9 @@
 package reload
 
 import (
-	"github.com/major1201/k8s-mutator/internal/config"
-	"github.com/major1201/k8s-mutator/pkg/httputils"
-	"github.com/major1201/k8s-mutator/pkg/log"
+	"github.com/major1201/kubemutator/internal/config"
+	"github.com/major1201/kubemutator/pkg/httputils"
+	"github.com/major1201/kubemutator/pkg/log"
 	"go.uber.org/zap"
 	"net/http"
 )

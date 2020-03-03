@@ -1,5 +1,5 @@
 ---
-annotationKey: k8s-mutator.example.com/requests
+annotationKey: kubemutator.example.com/requests
 
 strategies:
   - name: filebeat

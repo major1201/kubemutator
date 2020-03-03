@@ -1,16 +1,16 @@
 package main
 
 import (
-	"github.com/major1201/k8s-mutator/internal/config"
-	"github.com/major1201/k8s-mutator/internal/view"
-	"github.com/major1201/k8s-mutator/pkg/log"
+	"github.com/major1201/kubemutator/internal/config"
+	"github.com/major1201/kubemutator/internal/view"
+	"github.com/major1201/kubemutator/pkg/log"
 	"github.com/urfave/cli"
 	"go.uber.org/zap"
 	"os"
 )
 
 // Name inspects the project name
-var Name = "k8s-mutator"
+var Name = "kubemutator"
 
 // Version means the project's version
 var Version = "custom"

@@ -3,7 +3,7 @@ package view
 import (
 	"context"
 	"github.com/major1201/goutils"
-	"github.com/major1201/k8s-mutator/pkg/httputils"
+	"github.com/major1201/kubemutator/pkg/httputils"
 	"go.uber.org/zap"
 	"net/http"
 	"time"

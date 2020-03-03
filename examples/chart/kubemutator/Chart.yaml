@@ -1,0 +1,8 @@
+apiVersion: v1
+appVersion: "v0.1.0"
+description: A Helm chart for kubemutator
+name: kubemutator
+version: 0.1.0
+maintainers:
+  - name: major1201
+    email: major1201@gmail.com

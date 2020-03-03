@@ -5,7 +5,7 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 )
 
-// MutatorConfig indicates the k8s-mutator main config file structure
+// MutatorConfig indicates the kubemutator main config file structure
 type MutatorConfig struct {
 	AnnotationKey string      `json:"annotationKey" yaml:"annotationKey"`
 	Strategies    []*Strategy `json:"strategies" yaml:"strategies"`

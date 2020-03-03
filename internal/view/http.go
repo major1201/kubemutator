@@ -3,7 +3,7 @@ package view
 import (
 	"crypto/tls"
 	"github.com/gorilla/mux"
-	plog "github.com/major1201/k8s-mutator/pkg/log"
+	plog "github.com/major1201/kubemutator/pkg/log"
 	"go.uber.org/zap"
 	"net/http"
 )

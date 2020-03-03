@@ -1,31 +1,31 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: "k8s-mutator"
+  name: "kubemutator"
   namespace: "kube-system"
   labels:
-    k8s-app: "k8s-mutator"
+    k8s-app: "kubemutator"
 spec:
   selector:
     matchLabels:
-      k8s-app: "k8s-mutator"
+      k8s-app: "kubemutator"
   template:
     metadata:
       labels:
-        k8s-app: "k8s-mutator"
+        k8s-app: "kubemutator"
     spec:
-      serviceAccountName: k8s-mutator
+      serviceAccountName: kubemutator
       containers:
-      - name: "k8s-mutator"
+      - name: "kubemutator"
         imagePullPolicy: Always
-        image: "major1201/k8s-mutator:latest"
+        image: "major1201/kubemutator:latest"
         ports:
         - name: https
           containerPort: 443
         volumeMounts:
         - name: config
-          mountPath: /etc/k8s-mutator
+          mountPath: /etc/kubemutator
       volumes:
       - name: config
         configMap:
-          name: k8s-mutator
+          name: kubemutator

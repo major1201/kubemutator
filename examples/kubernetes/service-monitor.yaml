@@ -2,10 +2,10 @@
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name: "k8s-mutator"
+  name: "kubemutator"
   namespace: "kube-system"
   labels:
-    k8s-app: "k8s-mutator"
+    k8s-app: "kubemutator"
 spec:
   endpoints:
   - honorLabels: true
@@ -18,4 +18,4 @@ spec:
     - kube-system
   selector:
     matchLabels:
-      k8s-app: "k8s-mutator"
+      k8s-app: "kubemutator"

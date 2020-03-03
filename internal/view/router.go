@@ -3,8 +3,8 @@ package view
 import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	"github.com/major1201/k8s-mutator/internal/view/mutate"
-	"github.com/major1201/k8s-mutator/internal/view/reload"
+	"github.com/major1201/kubemutator/internal/view/mutate"
+	"github.com/major1201/kubemutator/internal/view/reload"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"net/http"
 )

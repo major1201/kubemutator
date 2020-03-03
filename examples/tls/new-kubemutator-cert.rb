@@ -15,9 +15,9 @@ require 'fileutils'
   },
   :certs => {
     :key_bits => 2048,
-    :key => 'k8s-mutator.key',
-    :csr => 'k8s-mutator.csr',
-    :cert => 'k8s-mutator.crt',
+    :key => 'kubemutator.key',
+    :csr => 'kubemutator.csr',
+    :cert => 'kubemutator.crt',
     :validity_days => 999999,
     :csr_config => 'csr-prod.conf',
   }
@@ -69,7 +69,7 @@ def gen_new_certs(az, cluster)
   end
 
   # ### Check the signing request
-  # openssl req -text -noout -in k8s-mutator.csr|grep -A4 "Requested Extensions"
+  # openssl req -text -noout -in kubemutator.csr|grep -A4 "Requested Extensions"
   #
   # ### Generate the certificate using the mydomain csr and key along with the CA Root key
   puts "Generate the cert"
@@ -105,7 +105,7 @@ def main
   gen_new_certs(az, cluster)
   puts "\n\n\nAll done!\n\nHere are your certs for #{az}-#{cluster}\n\n"
   Kernel.system(%[git status])
-  puts "Generated new certs for #{az}-#{cluster} for k8s-mutator"
+  puts "Generated new certs for #{az}-#{cluster} for kubemutator"
   puts "Please commit these!"
 end
 

@@ -1,5 +1,5 @@
 PACKAGES = \
-github.com/major1201/k8s-mutator
+github.com/major1201/kubemutator
 RELEASE_PLATFORMS = \
 darwin/amd64 \
 linux/amd64

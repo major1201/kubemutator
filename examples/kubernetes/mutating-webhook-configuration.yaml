@@ -1,11 +1,11 @@
 apiVersion:  admissionregistration.k8s.io/v1beta1
 kind: MutatingWebhookConfiguration
 metadata:
-  name: "k8s-mutator"
+  name: "kubemutator"
   labels:
-    app: k8s-mutator
+    app: kubemutator
 webhooks:
-  - name: k8s-mutator.example.com
+  - name: kubemutator.example.com
     failurePolicy: "Ignore" # we fail "open" if the webhook is down hard
     namespaceSelector:
       matchLabels:
@@ -17,7 +17,7 @@ webhooks:
         resources: ["pods"]
     clientConfig:
       service:
-        name: "k8s-mutator"
+        name: "kubemutator"
         namespace: "kube-system"
         path: "/mutate"
       caBundle: "!!! your base64 encoded cabundle here !!!"

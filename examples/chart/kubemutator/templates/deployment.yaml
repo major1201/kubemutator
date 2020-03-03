@@ -15,7 +15,7 @@ spec:
     spec:
       serviceAccountName: {{ .Release.Name }}
       containers:
-      - name: "k8s-mutator"
+      - name: "kubemutator"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         image: {{ .Values.image.name }}
         ports:
@@ -23,7 +23,7 @@ spec:
           containerPort: 443
         volumeMounts:
         - name: config
-          mountPath: /etc/k8s-mutator
+          mountPath: /etc/kubemutator
       volumes:
       - name: config
         configMap:
