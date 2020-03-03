@@ -32,17 +32,18 @@ const (
 	// JSONPatchOpAdd json patch operator add
 	JSONPatchOpAdd JSONPatchOp = "add"
 	// JSONPatchOpRemove json patch operator remove
-	JSONPatchOpRemove = "remove"
+	JSONPatchOpRemove JSONPatchOp = "remove"
 	// JSONPatchOpReplace json patch operator replace
-	JSONPatchOpReplace = "replace"
+	JSONPatchOpReplace JSONPatchOp = "replace"
 	// JSONPatchOpMove json patch operator move
-	JSONPatchOpMove = "move"
+	JSONPatchOpMove JSONPatchOp = "move"
 	// JSONPatchOpCopy json patch operator copy
-	JSONPatchOpCopy = "copy"
+	JSONPatchOpCopy JSONPatchOp = "copy"
 	// JSONPatchOpTest json patch operator test
-	JSONPatchOpTest = "test"
+	JSONPatchOpTest JSONPatchOp = "test"
 )
 
+// Valid returns if the json patch operator is valid or not
 func (op JSONPatchOp) Valid() bool {
 	return goutils.Contains(op, JSONPatchOpAdd, JSONPatchOpRemove, JSONPatchOpReplace, JSONPatchOpMove, JSONPatchOpCopy, JSONPatchOpTest)
 }
