@@ -2,7 +2,7 @@ package mutate
 
 import (
 	"bytes"
-	"fmt"
+	"encoding/json"
 	"github.com/ghodss/yaml"
 	"github.com/major1201/goutils"
 	"github.com/major1201/k8s-mutator/internal/config"
@@ -16,6 +16,36 @@ import (
 	"strings"
 	"text/template"
 )
+
+// JSONPatch object
+type JSONPatch struct {
+	Op    JSONPatchOp `json:"op" yaml:"op"`
+	Path  string      `json:"path" yaml:"path"`
+	From  string      `json:"from,omitempty" yaml:"from,omitempty"`
+	Value interface{} `json:"value,omitempty" yaml:"value,omitempty"`
+}
+
+// JSONPatchOp json patch operator type
+type JSONPatchOp string
+
+const (
+	// JSONPatchOpAdd json patch operator add
+	JSONPatchOpAdd JSONPatchOp = "add"
+	// JSONPatchOpRemove json patch operator remove
+	JSONPatchOpRemove = "remove"
+	// JSONPatchOpReplace json patch operator replace
+	JSONPatchOpReplace = "replace"
+	// JSONPatchOpMove json patch operator move
+	JSONPatchOpMove = "move"
+	// JSONPatchOpCopy json patch operator copy
+	JSONPatchOpCopy = "copy"
+	// JSONPatchOpTest json patch operator test
+	JSONPatchOpTest = "test"
+)
+
+func (op JSONPatchOp) Valid() bool {
+	return goutils.Contains(op, JSONPatchOpAdd, JSONPatchOpRemove, JSONPatchOpReplace, JSONPatchOpMove, JSONPatchOpCopy, JSONPatchOpTest)
+}
 
 type templateData struct {
 	Pod *corev1.Pod
@@ -96,7 +126,7 @@ func patchPod(ar *v1beta1.AdmissionReview, pod *corev1.Pod) (jsonPatch []byte, a
 	}
 
 	// generate json patch
-	var patches []string
+	var patches []JSONPatch
 	for stg := range strategies {
 		exist := false
 		for _, configStrategy := range config.CurrentConfig.Strategies {
@@ -125,26 +155,45 @@ func patchPod(ar *v1beta1.AdmissionReview, pod *corev1.Pod) (jsonPatch []byte, a
 						continue
 					}
 
-					jp, err := yaml.YAMLToJSON([]byte(yamlPatch))
-					if err != nil {
-						return nil, nil, errors.New(fmt.Sprintf("yaml to json error, strategy: %s", stg))
+					if patch.IsArray {
+						var jps []JSONPatch
+						if err := yaml.Unmarshal([]byte(yamlPatch), &jps); err != nil {
+							return nil, nil, errors.Errorf("yaml unmarshal patch array error, strategy: %s", stg)
+						}
+						for _, jp := range jps {
+							if !jp.Op.Valid() {
+								return nil, nil, errors.Errorf("unknown op: %s, strategy: %s", jp.Op, stg)
+							}
+						}
+						patches = append(patches, jps...)
+					} else {
+						jp := JSONPatch{}
+						if err := yaml.Unmarshal([]byte(yamlPatch), &jp); err != nil {
+							return nil, nil, errors.Errorf("yaml unmarshal patch error, strategy: %s", stg)
+						}
+						if !jp.Op.Valid() {
+							return nil, nil, errors.Errorf("unknown op: %s, strategy: %s", jp.Op, stg)
+						}
+						patches = append(patches, jp)
 					}
-
-					patches = append(patches, string(jp))
 				}
 				break
 			}
 		}
 
 		if !exist {
-			return nil, nil, errors.New(fmt.Sprintf("strategy not exist: %s", stg))
+			return nil, nil, errors.Errorf("strategy not exist: %s", stg)
 		}
 	}
 
 	if len(patches) == 0 {
 		return nil, nil, nil
 	}
-	return []byte("[" + strings.Join(patches, ",") + "]"), map[string]string{"strategies": strings.Join(mapKeys(strategies), ",")}, nil
+	jpsb, err := json.Marshal(patches)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "json marshal error")
+	}
+	return jpsb, map[string]string{"strategies": strings.Join(mapKeys(strategies), ",")}, nil
 }
 
 func matchRule(ar *v1beta1.AdmissionReview, pod *corev1.Pod, rule *config.Rule) bool {

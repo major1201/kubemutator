@@ -22,6 +22,7 @@ type Strategy struct {
 type Patch struct {
 	Data       string `json:"data" yaml:"data"`
 	IsTemplate bool   `json:"isTemplate" yaml:"isTemplate"`
+	IsArray    bool   `json:"isArray" yaml:"isArray"`
 }
 
 // Rule indicates each select rule
