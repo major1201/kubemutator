@@ -1,13 +1,13 @@
 package config
 
 import (
+	"crypto/sha1"
 	"github.com/ghodss/yaml"
 	"github.com/major1201/goutils"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"os"
 )
 
 // Path indicates the config file path
@@ -16,6 +16,8 @@ var Path string
 // CurrentConfig indicates the current running config
 var CurrentConfig *MutatorConfig
 
+var sha1Sum [20]byte
+
 // SetPath sets the config file path
 func SetPath(path string) {
 	Path = path
@@ -23,16 +25,16 @@ func SetPath(path string) {
 
 // LoadConfig loads the config from the file
 func LoadConfig() error {
-	yamlFile, err := os.Open(Path)
-	if err != nil {
-		return errors.Wrapf(err, "open config file error: %s", Path)
-	}
-	defer yamlFile.Close()
-
 	// read all
-	yamlByte, err := ioutil.ReadAll(yamlFile)
+	yamlByte, err := ioutil.ReadFile(Path)
 	if err != nil {
 		return errors.Wrap(err, "read config file error")
+	}
+
+	// check sum
+	newSha1Sum := sha1.Sum(yamlByte)
+	if newSha1Sum == sha1Sum {
+		return nil
 	}
 
 	config := &MutatorConfig{}
@@ -47,6 +49,7 @@ func LoadConfig() error {
 	}
 
 	CurrentConfig = config
+	sha1Sum = newSha1Sum
 
 	zap.L().Named("config").Info("config file loaded", zap.String("path", Path), zap.Any("currentConfig", CurrentConfig))
 
