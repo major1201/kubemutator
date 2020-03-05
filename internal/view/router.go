@@ -1,21 +1,23 @@
 package view
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/gorilla/handlers"
-	"github.com/gorilla/mux"
 	"github.com/major1201/kubemutator/internal/view/mutate"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/major1201/kubemutator/pkg/httputils"
+	"go.uber.org/zap"
 	"net/http"
+	"time"
 )
 
-// SetRouter sets the main http route
-func SetRouter(router *mux.Router) {
-	// prometheus metrics
-	router.Handle("/metrics", promhttp.Handler())
-
-	// mutate
-	mutateRoute := router.Path("/mutate").Subrouter()
-	mutateRoute.Use(RequestIDMiddleware, LogMiddleware)
+// Router routes the API URL
+func Router(router *gin.Engine) {
+	router.Use(
+		httputils.RequestIDMiddlewareFunc,
+		httputils.TimeoutMiddleware(10*time.Second),
+		httputils.LogMiddleware(zap.L().Named("http.request")),
+		httputils.RecoveryMiddleware(zap.L().Named("http.recovery"), true),
+	)
 	mutateHandler := handlers.ContentTypeHandler(http.HandlerFunc(mutate.ServeMutate), "application/json")
-	mutateRoute.Handle("", mutateHandler)
+	router.Any("/mutate", gin.WrapH(mutateHandler))
 }

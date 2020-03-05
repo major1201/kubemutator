@@ -1,9 +1,7 @@
 package mutate
 
 import (
-	"context"
 	"encoding/json"
-	"github.com/major1201/kubemutator/pkg/httputils"
 	"github.com/major1201/kubemutator/pkg/log"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -18,20 +16,10 @@ import (
 
 // ServeMutate serve the /mutate path
 func ServeMutate(w http.ResponseWriter, r *http.Request) {
-	// set logger
-	r = r.WithContext(context.WithValue(r.Context(), httputils.CtxLogger, zap.L().Named("mutator").With(zap.String("requestId", httputils.RequestID(r)))))
-
-	// serve
 	serve(w, r, mutatePods)
 }
 
-func getLogger(r *http.Request) *zap.Logger {
-	ctx := r.Context()
-	if ctx != nil {
-		return ctx.Value(httputils.CtxLogger).(*zap.Logger)
-	}
-	return nil
-}
+var logger = zap.L().Named("mutator")
 
 // toAdmissionResponse is a helper function to create an AdmissionResponse
 // with an embedded error
@@ -44,7 +32,7 @@ func toAdmissionResponse(err error) *v1beta1.AdmissionResponse {
 }
 
 // admitFunc is the type we use for all of our validators and mutators
-type admitFunc func(*http.Request, v1beta1.AdmissionReview) *v1beta1.AdmissionResponse
+type admitFunc func(v1beta1.AdmissionReview) *v1beta1.AdmissionResponse
 
 // serve handles the http portion of a request prior to handing to an admit
 // function
@@ -65,18 +53,18 @@ func serve(w http.ResponseWriter, r *http.Request, admit admitFunc) {
 	deserializer := codecs.UniversalDeserializer()
 	if _, _, err := deserializer.Decode(body, nil, &requestedAdmissionReview); err != nil {
 		err = errors.Wrap(err, "deserializer decode error")
-		getLogger(r).Error("deserializer decoding error", log.Error(err))
+		logger.Error("deserializer decoding error", log.Error(err))
 		responseAdmissionReview.Response = toAdmissionResponse(err)
 	} else {
 		// pass to admitFunc
-		responseAdmissionReview.Response = admit(r, requestedAdmissionReview)
+		responseAdmissionReview.Response = admit(requestedAdmissionReview)
 	}
 
 	// Return the same UID
 	responseAdmissionReview.Response.UID = requestedAdmissionReview.Request.UID
 
 	response := responseAdmissionReview.Response
-	getLogger(r).Info("sending response",
+	logger.Info("sending response",
 		zap.String("uid", string(response.UID)),
 		zap.Bool("allowed", response.Allowed),
 		zap.Any("auditAnnotations", response.AuditAnnotations),
@@ -87,10 +75,10 @@ func serve(w http.ResponseWriter, r *http.Request, admit admitFunc) {
 	respBytes, err := json.Marshal(responseAdmissionReview)
 	if err != nil {
 		err = errors.Wrap(err, "json marshal error")
-		getLogger(r).Error("json marshal error", log.Error(err))
+		logger.Error("json marshal error", log.Error(err))
 	}
 	if _, err := w.Write(respBytes); err != nil {
 		err = errors.Wrap(err, "write response error")
-		getLogger(r).Error("write response error", zap.Error(err))
+		logger.Error("write response error", zap.Error(err))
 	}
 }

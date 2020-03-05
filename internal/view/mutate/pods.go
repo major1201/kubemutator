@@ -12,7 +12,6 @@ import (
 	"k8s.io/api/admission/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"net/http"
 	"strings"
 	"text/template"
 )
@@ -62,11 +61,11 @@ func ContainsString(obj string, v ...string) bool {
 	return false
 }
 
-func mutatePods(r *http.Request, ar v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
-	getLogger(r).Debug("processing admission review")
+func mutatePods(ar v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
+	logger.Debug("processing admission review")
 	podResource := metav1.GroupVersionResource{Group: "", Version: "v1", Resource: "pods"}
 	if ar.Request.Resource != podResource {
-		getLogger(r).Error("expect resource to be pod", zap.Any("podResource", podResource))
+		logger.Error("expect resource to be pod", zap.Any("podResource", podResource))
 		return nil
 	}
 
@@ -75,7 +74,7 @@ func mutatePods(r *http.Request, ar v1beta1.AdmissionReview) *v1beta1.AdmissionR
 	deserializer := codecs.UniversalDeserializer()
 	if _, _, err := deserializer.Decode(raw, nil, &pod); err != nil {
 		err = errors.Wrap(err, "deserializer decode error")
-		getLogger(r).Error("deserializer decoding error", log.Error(err))
+		logger.Error("deserializer decoding error", log.Error(err))
 		return toAdmissionResponse(err)
 	}
 
@@ -84,7 +83,7 @@ func mutatePods(r *http.Request, ar v1beta1.AdmissionReview) *v1beta1.AdmissionR
 
 	jsonPatch, auditAnnotations, err := patchPod(&ar, &pod)
 	if err != nil {
-		getLogger(r).Error("patch error", zap.Error(err))
+		logger.Error("patch error", zap.Error(err))
 	} else {
 		if jsonPatch != nil {
 			pt := v1beta1.PatchTypeJSONPatch
@@ -92,7 +91,7 @@ func mutatePods(r *http.Request, ar v1beta1.AdmissionReview) *v1beta1.AdmissionR
 			reviewResponse.Patch = jsonPatch
 			reviewResponse.AuditAnnotations = auditAnnotations
 
-			getLogger(r).Info("mutating pod", zap.String("name", pod.GenerateName))
+			logger.Info("mutating pod", zap.String("name", pod.GenerateName))
 		}
 	}
 	return &reviewResponse
