@@ -37,7 +37,7 @@ type Rule struct {
 // Matches returns if the selector matches the labels
 func (r *Rule) Matches(l map[string]string) bool {
 	if r.selector == nil {
-		return false
+		return true
 	}
 	return r.selector.Matches(labels.Set(l))
 }
