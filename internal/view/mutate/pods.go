@@ -1,19 +1,18 @@
 package mutate
 
 import (
-	"bytes"
 	"encoding/json"
 	"github.com/ghodss/yaml"
 	"github.com/major1201/goutils"
 	"github.com/major1201/kubemutator/internal/config"
 	"github.com/major1201/kubemutator/pkg/log"
+	"github.com/major1201/kubemutator/pkg/tmpl"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"k8s.io/api/admission/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"strings"
-	"text/template"
 )
 
 // JSONPatch object
@@ -136,17 +135,10 @@ func patchPod(ar *v1beta1.AdmissionReview, pod *corev1.Pod) (jsonPatch []byte, a
 					var yamlPatch string
 					if patch.IsTemplate {
 						// template patch
-						tmpl, err := template.New(pod.GenerateName).Parse(patch.Data)
-						if err != nil {
-							return nil, nil, errors.WithMessage(errors.WithStack(err), "parse template error")
-						}
-						var bbf bytes.Buffer
-						err = tmpl.Execute(&bbf, td)
+						yamlPatch, err = tmpl.ExecuteTextTemplate(patch.Data, td)
 						if err != nil {
 							return nil, nil, errors.WithMessage(errors.WithStack(err), "execute template error")
 						}
-
-						yamlPatch = bbf.String()
 					} else {
 						yamlPatch = patch.Data
 					}
