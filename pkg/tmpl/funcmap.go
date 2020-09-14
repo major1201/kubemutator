@@ -78,4 +78,8 @@ var fm = FuncMap{
 	"debug": debug,
 	"env":   os.Getenv,
 	"idx":   index,
+
+	// kubernetes
+	"mulquantity": mulQuantity,
+	"divquantity": divQuantity,
 }
