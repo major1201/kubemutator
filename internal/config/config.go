@@ -2,11 +2,12 @@ package config
 
 import (
 	"crypto/sha1"
+	"os"
+
 	"github.com/ghodss/yaml"
 	"github.com/major1201/goutils"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
-	"io/ioutil"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -26,7 +27,7 @@ func SetPath(path string) {
 // LoadConfig loads the config from the file
 func LoadConfig() error {
 	// read all
-	yamlByte, err := ioutil.ReadFile(Path)
+	yamlByte, err := os.ReadFile(Path)
 	if err != nil {
 		return errors.Wrap(err, "read config file error")
 	}

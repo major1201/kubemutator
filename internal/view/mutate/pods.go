@@ -2,6 +2,8 @@ package mutate
 
 import (
 	"encoding/json"
+	"strings"
+
 	"github.com/ghodss/yaml"
 	"github.com/major1201/goutils"
 	"github.com/major1201/kubemutator/internal/config"
@@ -9,10 +11,9 @@ import (
 	"github.com/major1201/kubemutator/pkg/tmpl"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
-	"k8s.io/api/admission/v1beta1"
+	admissionv1 "k8s.io/api/admission/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"strings"
 )
 
 // JSONPatch object
@@ -60,7 +61,7 @@ func ContainsString(obj string, v ...string) bool {
 	return false
 }
 
-func mutatePods(ar v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
+func mutatePods(ar admissionv1.AdmissionReview) *admissionv1.AdmissionResponse {
 	logger.Debug("processing admission review")
 	podResource := metav1.GroupVersionResource{Group: "", Version: "v1", Resource: "pods"}
 	if ar.Request.Resource != podResource {
@@ -77,7 +78,7 @@ func mutatePods(ar v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
 		return toAdmissionResponse(err)
 	}
 
-	reviewResponse := v1beta1.AdmissionResponse{}
+	reviewResponse := admissionv1.AdmissionResponse{}
 	reviewResponse.Allowed = true
 
 	jsonPatch, auditAnnotations, err := patchPod(&ar, &pod)
@@ -85,7 +86,7 @@ func mutatePods(ar v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
 		logger.Error("patch error", zap.Error(err))
 	} else {
 		if jsonPatch != nil {
-			pt := v1beta1.PatchTypeJSONPatch
+			pt := admissionv1.PatchTypeJSONPatch
 			reviewResponse.PatchType = &pt
 			reviewResponse.Patch = jsonPatch
 			reviewResponse.AuditAnnotations = auditAnnotations
@@ -96,7 +97,7 @@ func mutatePods(ar v1beta1.AdmissionReview) *v1beta1.AdmissionResponse {
 	return &reviewResponse
 }
 
-func patchPod(ar *v1beta1.AdmissionReview, pod *corev1.Pod) (jsonPatch []byte, auditAnnotations map[string]string, err error) {
+func patchPod(ar *admissionv1.AdmissionReview, pod *corev1.Pod) (jsonPatch []byte, auditAnnotations map[string]string, err error) {
 	strategies := make(map[string]bool)
 	// check rules
 	for _, rule := range config.CurrentConfig.Rules {
@@ -188,7 +189,7 @@ func patchPod(ar *v1beta1.AdmissionReview, pod *corev1.Pod) (jsonPatch []byte, a
 	return jpsb, map[string]string{"strategies": strings.Join(mapKeys(strategies), ",")}, nil
 }
 
-func matchRule(ar *v1beta1.AdmissionReview, pod *corev1.Pod, rule *config.Rule) bool {
+func matchRule(ar *admissionv1.AdmissionReview, pod *corev1.Pod, rule *config.Rule) bool {
 	// check namespace
 	if rule.Namespace != nil {
 		if !ContainsString(ar.Request.Namespace, rule.Namespace...) {
