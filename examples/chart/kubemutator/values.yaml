@@ -3,6 +3,12 @@ image:
   name: "major1201/kubemutator:latest"
   pullPolicy: Always
 
+deploy:
+  # affinity: {}
+  # nodeSelector: {}
+  hostNetwork: false
+  listenPort: 443
+
 webhook:
   name: kubemutator.example.com
   failurePolicy: Ignore

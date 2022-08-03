@@ -14,13 +14,23 @@ spec:
         k8s-app: {{ .Release.Name }}
     spec:
       serviceAccountName: {{ .Release.Name }}
+{{- if .Values.deploy.affinity }}
+      affinity:
+{{ toYaml .Values.deploy.affinity | indent 8 }}
+{{- end }}
+{{- if .Values.deploy.nodeSelector }}
+      nodeSelector:
+{{ toYaml .Values.deploy.nodeSelector | indent 8 }}
+{{- end }}
+      hostNetwork: {{ .Values.deploy.hostNetwork }}
       containers:
       - name: "kubemutator"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         image: {{ .Values.image.name }}
+        args: ["--listen", ":{{ .Values.deploy.listenPort }}"]
         ports:
         - name: https
-          containerPort: 443
+          containerPort: {{ .Values.deploy.listenPort }}
         volumeMounts:
         - name: config
           mountPath: /etc/kubemutator
