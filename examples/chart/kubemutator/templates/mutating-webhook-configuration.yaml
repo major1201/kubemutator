@@ -24,3 +24,8 @@ webhooks:
       caBundle: {{ .Values.certificates.caBundle }}
     sideEffects: None
     admissionReviewVersions: ["v1"]
+    objectSelector:
+      matchExpressions:
+        - key: k8s-app
+          operator: NotIn
+          values: [ "{{ .Release.Name }}" ]
